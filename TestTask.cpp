@@ -27,7 +27,7 @@ void countBitInList(std::list<int>& list, bool direction) {
     while (true) {
         std::unique_lock<std::mutex> lock(mutex_);
         if (list.empty()) {
-            std::cout << "Counted " << count << " of " << direction << std::endl;
+            std::cout << "Counted " << count << " of " << direction << " size = " << size << std::endl;
             return;
         }
         int value;
