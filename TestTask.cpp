@@ -10,7 +10,7 @@ std::mutex mutex_;
 int countBitInInt(int num, int bit) {
     int count = 0;
 
-    if (num < 0 || (bit != 0 && bit != 1)) {
+    if (bit != 0 && bit != 1) {
         return -1;
     }
 
