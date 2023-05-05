@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <list>
 #include <thread>
 #include <mutex>
@@ -10,19 +10,31 @@ std::mutex mutex_;
 int countBitInInt(int num, int bit) {
     int count = 0;
 
-    while (num > 0) {
-        if (num % 2 == bit) {
-            count++;
-        }
-        num /= 2;
+    if (num < 0 || (bit != 0 && bit != 1)) {
+        return -1;
     }
 
+    for (int i = 0; i < sizeof(int)*8; ++i) {
+        if (bit == ((num >> i) & 1)) {
+            count++;
+        }
+    }
+    
     return count;
 }
 
 void countBitInList(std::list<int>& list, bool direction) {
     int count = 0;
     int size = 0;
+    int bit;
+    int value;
+
+    if (direction) {
+        bit = 1;
+    }
+    else {
+        bit = 0;
+    }
 
     while (true) {
         std::unique_lock<std::mutex> lock(mutex_);
@@ -30,7 +42,7 @@ void countBitInList(std::list<int>& list, bool direction) {
             std::cout << "Counted " << count << " of " << direction << " size = " << size << std::endl;
             return;
         }
-        int value;
+        
         if (direction) {
             value = list.front();
             list.pop_front();
@@ -43,12 +55,12 @@ void countBitInList(std::list<int>& list, bool direction) {
         lock.unlock();
 
         
-        count += countBitInInt(value, direction);
+        count += countBitInInt(value, bit);
     }
 }
 
 int main() {
-    for (int j = 0; j < 10000; j++)
+    for (int j = 0; j < 1000; j++)
     {   
         std::cout << "Test # " << j + 1 << "\n";
 
@@ -69,8 +81,6 @@ int main() {
         thread2.join();
 
     }
-    
-    
 
     return 0;
 }
