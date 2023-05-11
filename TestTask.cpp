@@ -4,18 +4,15 @@
 #include <mutex>
 #include <time.h>
 #include <stdlib.h>
+#include <chrono>
 
 std::mutex mutex_;
 
-int countBitInInt(int num, int bit) {
+int countBitInInt(unsigned int num) {
     int count = 0;
 
-    if (bit != 0 && bit != 1) {
-        return -1;
-    }
-
-    for (int i = 0; i < sizeof(int)*8; ++i) {
-        if (bit == ((num >> i) & 1)) {
+    for (int i = 0; i < sizeof(unsigned int)*8; ++i) {
+        if (((num >> i) & 1)) { 
             count++;
         }
     }
@@ -23,7 +20,7 @@ int countBitInInt(int num, int bit) {
     return count;
 }
 
-void countBitInList(std::list<int>& list, bool direction) {
+void countBitInList(std::list<unsigned int>& list, bool direction) {
     int count = 0;
     int size = 0;
     int bit;
@@ -37,9 +34,11 @@ void countBitInList(std::list<int>& list, bool direction) {
     }
 
     while (true) {
-        std::unique_lock<std::mutex> lock(mutex_);
+        mutex_.lock();
+
         if (list.empty()) {
             std::cout << "Counted " << count << " of " << direction << " size = " << size << std::endl;
+            mutex_.unlock();
             return;
         }
         
@@ -52,19 +51,27 @@ void countBitInList(std::list<int>& list, bool direction) {
             list.pop_back(); 
         }
         size++;
-        lock.unlock();
+        mutex_.unlock();
 
+        if (direction) {
+            count += countBitInInt(value);
+        }
+        else {
+            count += sizeof(unsigned int) * 8 -  countBitInInt(value);
+        }
         
-        count += countBitInInt(value, bit);
     }
 }
 
 int main() {
-    for (int j = 0; j < 1000; j++)
+    std::list<unsigned int> list;
+
+
+    for (int j = 0; j < 1; j++)
     {   
         std::cout << "Test # " << j + 1 << "\n";
 
-        std::list<int> list;
+        
         srand(time(NULL));
 
 
@@ -77,10 +84,10 @@ int main() {
         std::thread thread2(countBitInList, std::ref(list), false);
 
 
-        thread1.join();
-        thread2.join();
+        thread1.detach();
+        thread2.detach();
 
-    }
-
+    } 
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     return 0;
 }
